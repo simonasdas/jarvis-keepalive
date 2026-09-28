@@ -1,0 +1,21 @@
+name: Render Keep-alive (Kurz-Ping)
+
+on:
+  schedule:
+    - cron: '*/4 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    name: Render wach pingen (4-Min)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health-Ping
+        env:
+          URL: ${{ secrets.KEEPALIVE_URL }}
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -m 45 "$URL" || true)
+          echo "HTTP-Status: $code"
