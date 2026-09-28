@@ -1,0 +1,45 @@
+name: JARVIS Keep-alive
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ping:
+    name: Render wach pingen
+    if: github.event_name != 'schedule' || github.event.schedule == '*/5 * * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Ping: alle 5 Minuten (Render-Sleep ist 15 Minuten)'
+        env:
+          URL: ${{ secrets.KEEPALIVE_URL }}
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -m 45 "$URL" || true)
+          echo "HTTP-Status: $code"
+          if [ "$code" = "000" ] || [ -z "$code" ]; then
+            echo "Keine Antwort – Render startet evtl. gerade neu, beim naechsten Lauf wieder."
+          fi
+
+  touch:
+    name: Repo aktiv halten (60-Tage-Regel)
+    if: github.event_name == 'schedule' && github.event.schedule == '23 4 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Taeglichen Stempel committen
+        run: |
+          git config user.name 'jarvis-keepalive'
+          git config user.email 'jarvis-keepalive@users.noreply.github.com'
+          echo "Letzter Keep-alive-Ping: $(date -u '+%Y-%m-%d %H:%M UTC')" > ACTIVE.md
+          git add ACTIVE.md
+          if git diff --cached --quiet; then
+            echo "Stempel schon aktuell."
+          else
+            git commit -m "keepalive: $(date -u +%F)"
+            git push
+          fi
