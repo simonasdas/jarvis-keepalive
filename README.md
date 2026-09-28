@@ -12,3 +12,4 @@ Internes Wartungs-Repository (nur ein GitHub-Actions-Workflow, kein Quellcode):
 
 Der Dienst verbraucht dadurch ~720 Free-Instance-Stunden pro Monat
 (Renders Free-Kontingent: 750/Monat – passt).
+Schedule registriert ist; danach laeuft der 5-Minuten-Ping stoerungsfrei.
